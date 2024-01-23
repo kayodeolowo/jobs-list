@@ -10,6 +10,18 @@ dotenv.config({path: './config/config.env'})
 //connect to database
 connectDatabase();
 
+//create own middleware
+const middleware = ( req, res,next)=> {
+    console.log('hello from middleware');
+
+    //setting up user variable globally
+    req.requestMethod = req.url;
+    next()
+}
+
+app.use(middleware)
+    
+
 
 
 //importing all the routes
