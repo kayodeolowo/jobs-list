@@ -3,12 +3,16 @@ const router = express.Router();
 
 //importing jobs controller methods
 
-const {getJobs,
-newJob} = require('../controllers/jobsController');
+const {
+getJobs,
+newJob,
+updateJob
+} = require('../controllers/jobsController');
 
-router.route('/jobs').get(getJobs)
+router.route('/jobs').get(getJobs);
 
-router.route('/jobs/new').post(newJob)
+router.route('/jobs/new').post(newJob);
+router.route('/job/:id').put(updateJob);
 
 
 

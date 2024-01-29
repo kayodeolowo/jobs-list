@@ -25,3 +25,29 @@ exports.newJob = async (req, res, next) => {
         data: job
     })
 }
+
+
+//update a job = /api/v1/job/:id
+
+exports.updateJob = async (req, res, next) =>{
+    let job = await Job.findById(req.params.id);
+
+    if(!job){
+        return res.status(404).json({
+            success: false,
+            message: 'job not found'
+        })
+    }
+
+    job = await Job.findByIdAndUpdate(req.params.id, req.body,{
+        new : true,
+        runValidators: true,
+        useFindAndModify: false
+    })
+
+    res.status(200).json({
+        success: true,
+        message: 'job is updated',
+        data: job
+    })
+}
