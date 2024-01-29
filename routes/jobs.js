@@ -6,13 +6,15 @@ const router = express.Router();
 const {
 getJobs,
 newJob,
-updateJob
+updateJob,
+deleteJob
 } = require('../controllers/jobsController');
 
 router.route('/jobs').get(getJobs);
 
 router.route('/jobs/new').post(newJob);
 router.route('/job/:id').put(updateJob);
+router.route('/job/:id').put(updateJob).delete(deleteJob)
 
 
 
