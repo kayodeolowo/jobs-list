@@ -27,4 +27,4 @@ const PORT = process.env.PORT;
 app.listen(PORT, ()=>{
     console.log(`server starter on port ${process.env.PORT} in ${process.env.NODE_ENV} mode.`);
 
-});
+}); 
