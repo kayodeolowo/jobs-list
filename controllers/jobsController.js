@@ -1,18 +1,36 @@
 const Job = require('../models/jobs')
+const { filterJobs, paginateJobs } = require('../utils/apiFilters')
 
 //Get all jobs (/api/v1/jobs)
 
 exports.getJobs = async (req, res, next) => {
+    try {
+        let jobs;
+        const filter = filterJobs(req.query);
 
-    const jobs = await Job.find()
+        if (req.query.limit && req.query.page) {
+            // Pagination is requested
+            const { skip, limit } = paginateJobs(req.query);
+            jobs = await Job.find(filter).skip(skip).limit(limit);
+        } else {
+            // No pagination requested, return all jobs
+            jobs = await Job.find(filter);
+        }
 
-    res.status(200).json({
-        success: true,
-        results: jobs.length,
-        data : jobs
-    })
-}
 
+        res.status(200).json({
+            success: true,
+            results: jobs.length,
+            data: jobs
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error'
+        });
+    }
+};
 //get a single job with id and slug /api/v1/job/:id/:slug
 exports.getJob = async( req, res, next)=> {
     const job = await Job.find({$and: [{_id : req.params.id}, {slug: req.params.slug}]});
@@ -50,28 +68,37 @@ exports.newJob = async (req, res, next) => {
 
 //update a job = /api/v1/job/:id
 
-exports.updateJob = async (req, res, next) =>{
-    let job = await Job.findById(req.params.id);
+exports.updateJob = async (req, res, next) => {
+    try {
+        let job = await Job.findById(req.params.id);
 
-    if(!job){
-        return res.status(404).json({
+        if (!job) {
+            return res.status(404).json({
+                success: false,
+                message: 'Job not found'
+            });
+        }
+
+        job = await Job.findByIdAndUpdate(req.params.id, req.body, {
+            new: true,
+            runValidators: true,
+            useFindAndModify: false
+        });
+
+        res.status(200).json({
+            success: true,
+            message: 'Job is updated',
+            data: job
+        });
+    } catch (error) {
+        // Handle errors
+        console.error(error);
+        res.status(500).json({
             success: false,
-            message: 'job not found'
-        })
+            message: 'Internal server error'
+        });
     }
-
-    job = await Job.findByIdAndUpdate(req.params.id, req.body,{
-        new : true,
-        runValidators: true,
-        useFindAndModify: false
-    })
-
-    res.status(200).json({
-        success: true,
-        message: 'job is updated',
-        data: job
-    })
-}
+};
 
 //delete a job = /api/v1/job/:id
 
@@ -99,13 +126,17 @@ exports.deleteJob = async (req, res, next )=> {
 exports.jobStats = async (req, res, next) => {
     const stats = await Job.aggregate([
         {
+            
             $match: { $text: { $search: req.params.topic } }
         },
 
         {
             $group:{
-                _id: null,
-                avgSalary: {$avg: '$salary' }
+                 _id: {},
+                totalJobs: {$sum: 1},
+                avgSalary: {$avg: '$salary' },
+                minSalary: {$min: '$salary'},
+                maxSalary: {$max: '$salary'}
             }
         }
     ])
