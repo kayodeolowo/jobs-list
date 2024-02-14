@@ -14,11 +14,16 @@ exports.registerUser = async (req, res, next)=> {
             password,
             role
         });
+        
+        // create jwt token
+        const token = user.getJwtToken();
+
+        // data: user,
 
         res.status(200).json({
             success: true,
-            message: 'Account successfully created',
-            data: user
+            message: 'Account successfully created',      
+            token
         });
     } catch (error) {
         if (error.code === 11000 && error.keyPattern && error.keyPattern.email) {
@@ -27,6 +32,7 @@ exports.registerUser = async (req, res, next)=> {
                 message: 'Email already exists'
             });
         }
+        
 
         console.error(error);
         res.status(500).json({
@@ -35,3 +41,52 @@ exports.registerUser = async (req, res, next)=> {
         });
     }
 };
+
+
+//login user= api/v1/login
+
+exports.loginUser = async (req, res, next) => {
+    const { email, password } = req.body;
+
+    //checks if email or password is entered by user
+    if (!email || !password) {
+        const error = new Error('Please enter both email and password.');
+        error.status = 400; // Set custom status code (e.g., Bad Request)
+        return res.status(400).json({ success: false, message: error.message });
+    }
+
+    try {
+        // Finding user in database
+        const user = await User.findOne({ email }).select('+password');
+
+        if (!user) {
+            const error = new Error('Invalid email or password');
+            error.status = 401; // Unauthorized
+            return res.status(401).json({ success: false, message: error.message });
+        }
+
+        // Check if password is correct 
+        const isPasswordMatched = await user.comparePassword(password);
+        if (!isPasswordMatched) {
+            const error = new Error('Invalid email or password');
+            error.status = 401; // Unauthorized
+            return res.status(401).json({ success: false, message: error.message });
+        }
+        
+        // Create JSON web token
+        const token = user.getJwtToken();
+
+        res.status(200).json({
+            success: true,
+            token
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error'
+        });
+    }
+};
+
+
