@@ -1,6 +1,7 @@
 const express = require ('express')
 const app = express();
 const dotenv= require('dotenv')
+const handleErrors = require('./middlewares/errors');
 
 const connectDatabase = require('./config/database');
 
@@ -12,16 +13,19 @@ connectDatabase();
 
 //setup body parser
 app.use(express.json());
-//create own middleware
 
-
+// Error handling middleware
+app.use(handleErrors);
     
 
 
 
 //importing all the routes
-const jobs = require('./routes/jobs'); 
+const jobs = require('./routes/jobs');
+const auth = require('./routes/auth');
+
 app.use('/api/v1', jobs)
+app.use('/api/v1', auth)
 
 const PORT = process.env.PORT;
 app.listen(PORT, ()=>{
