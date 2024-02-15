@@ -1,6 +1,7 @@
 const express = require ('express')
 const app = express();
-const dotenv= require('dotenv')
+const dotenv= require('dotenv');
+const cookieParser = require('cookie-parser');
 const handleErrors = require('./middlewares/errors');
 
 const connectDatabase = require('./config/database');
@@ -17,7 +18,8 @@ app.use(express.json());
 // Error handling middleware
 app.use(handleErrors);
     
-
+//set cookie parser
+app.use(cookieParser())
 
 
 //importing all the routes

@@ -1,5 +1,5 @@
 const User = require ('../models/users');
-
+const sendToken = require('../utils/jwtToken')
 //register new user api/v1/register
 
 
@@ -15,16 +15,18 @@ exports.registerUser = async (req, res, next)=> {
             role
         });
         
-        // create jwt token
-        const token = user.getJwtToken();
 
-        // data: user,
+        //  // create jwt token
+        //  const token = user.getJwtToken();
 
-        res.status(200).json({
-            success: true,
-            message: 'Account successfully created',      
-            token
-        });
+        //  // data: user,
+ 
+        //  res.status(200).json({
+        //      success: true,
+        //      message: 'Account successfully created',      
+        //      token
+        //  });
+       sendToken(user, 200, res)
     } catch (error) {
         if (error.code === 11000 && error.keyPattern && error.keyPattern.email) {
             return res.status(400).json({
@@ -73,13 +75,9 @@ exports.loginUser = async (req, res, next) => {
             return res.status(401).json({ success: false, message: error.message });
         }
         
-        // Create JSON web token
-        const token = user.getJwtToken();
-
-        res.status(200).json({
-            success: true,
-            token
-        });
+        // // Create JSON web token
+       
+        sendToken(user, 200, res)
     } catch (error) {
         console.error(error);
         res.status(500).json({
